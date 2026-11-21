@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OpenCV Kamera</title>
-<meta name="description" content="OpenCvSharp ile bilgisayar kamerasından canlı görüntü alan bir Windows Forms uygulaması. Görüntüye gerçek zamanlı filtreler uygular, yüz algılar, fotoğraf çeker ve video kaydeder.">
+<meta name="description" content="OpenCvSharp ile bilgisayar kamerasından canlı görüntü alan bir Windows Forms uygulaması. Görüntüdeki nesneleri tanır, her birinin kameraya uzaklığını tahmin eder ve nesne hakkında bilgi verir. Ayrıca gerçek zamanlı filtr">
 <meta property="og:title" content="OpenCV Kamera">
-<meta property="og:description" content="OpenCvSharp ile bilgisayar kamerasından canlı görüntü alan bir Windows Forms uygulaması. Görüntüye gerçek zamanlı filtreler uygular, yüz algılar, fotoğraf çeker ve video kaydeder.">
+<meta property="og:description" content="OpenCvSharp ile bilgisayar kamerasından canlı görüntü alan bir Windows Forms uygulaması. Görüntüdeki nesneleri tanır, her birinin kameraya uzaklığını tahmin eder ve nesne hakkında bilgi verir. Ayrıca gerçek zamanlı filtr">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -59,7 +59,7 @@ footer { color: var(--muted); font-size: 14px; padding: 0 0 40px; text-align: ce
   <div class="wrap">
     <div class="owner">BeyzanurKarademirli / OpenCv</div>
     <h1 class="title">OpenCV Kamera</h1>
-    <p class="lead">OpenCvSharp ile bilgisayar kamerasından canlı görüntü alan bir Windows Forms uygulaması. Görüntüye gerçek zamanlı filtreler uygular, yüz algılar, fotoğraf çeker ve video kaydeder.</p>
+    <p class="lead">OpenCvSharp ile bilgisayar kamerasından canlı görüntü alan bir Windows Forms uygulaması. Görüntüdeki nesneleri tanır, her birinin kameraya uzaklığını tahmin eder ve nesne hakkında bilgi verir. Ayrıca gerçek zamanlı filtr</p>
     <div class="tags"><span class="tag">C#</span></div>
     <div class="actions">
       <a class="btn primary" href="https://github.com/BeyzanurKarademirli/OpenCv">GitHub'da görüntüle</a>
@@ -72,6 +72,9 @@ footer { color: var(--muted); font-size: 14px; padding: 0 0 40px; text-align: ce
   <div class="wrap"><article>
 <h2>Özellikler</h2>
 <ul>
+<li><strong>Nesne tanıma:</strong> 80 farklı nesne türü (kişi, sandalye, telefon, kitap, araba, kedi...) YOLOv4-tiny modeliyle, internet gerektirmeden</li>
+<li><strong>Mesafe tahmini:</strong> Her nesnenin kameraya yaklaşık uzaklığı ve tahmini gerçek boyutu</li>
+<li><strong>Nesne bilgisi:</strong> Türkçe ad, kategori, güven oranı, konum, kısa açıklama ve (internet varsa) Türkçe Vikipedi özeti</li>
 <li>Canlı kamera görüntüsü (en-boy oranı korunur), FPS ve çözünürlük göstergesi</li>
 <li>6 filtre: Normal, Gri, Kenar (Canny), Bulanık, Karakalem, Negatif</li>
 <li>Haar Cascade ile yüz algılama ve yüz sayısı</li>
@@ -96,6 +99,18 @@ footer { color: var(--muted); font-size: 14px; padding: 0 0 40px; text-align: ce
 <tr>
 <td><code>Q</code></td>
 <td>Kamerayı durdur</td>
+</tr>
+<tr>
+<td><code>O</code></td>
+<td>Nesne tanımayı aç/kapat (sağda nesne paneli açılır)</td>
+</tr>
+<tr>
+<td><code>K</code></td>
+<td>Seçili nesneyle mesafe kalibrasyonu</td>
+</tr>
+<tr>
+<td>Fare tıklaması</td>
+<td>Görüntüdeki nesneyi seç ve bilgilerini göster</td>
 </tr>
 <tr>
 <td><code>1</code>–<code>6</code></td>
@@ -131,7 +146,17 @@ footer { color: var(--muted); font-size: 14px; padding: 0 0 40px; text-align: ce
 </tr>
 </tbody>
 </table>
-<p>Fotoğraflar <code>Resimler\OpenCV Kamera</code>, videolar <code>Videolar\OpenCV Kamera</code> klasörüne kaydedilir.</p>
+<p>Fotoğraflar <code>Resimler\OpenCV Kamera</code>, videolar <code>Videolar\OpenCV Kamera</code> klasörüne kaydedilir. Nesne etiketleri fotoğraf ve videolara da işlenir.</p>
+<h2>Mesafe nasıl hesaplanıyor?</h2>
+<p>Tek kamerayla derinlik doğrudan ölçülemez, bu yüzden her nesne türünün ortalama gerçek boyutu kullanılır (örneğin kişi ≈ 1,70 m, sandalye ≈ 0,90 m):</p>
+<pre><code>mesafe = gerçek boyut × odak uzaklığı (piksel) / görüntüdeki boyut (piksel)
+</code></pre>
+<ul>
+<li>Varsayılan olarak tipik bir web kamerası (≈ 60° görüş açısı) kabul edilir.</li>
+<li>Nesne kadrajdan taşıyorsa (örneğin kameraya yakın oturan birinin sadece üst gövdesi görünüyorsa) taşmayan kenar kullanılır.</li>
+<li><strong>Kalibrasyon:</strong> Bir nesneyi (örneğin kendinizi) bilinen bir uzaklığa koyun, listeden seçin, <code>K</code> tuşuna basıp gerçek mesafeyi metre olarak yazın. Ayar kaydedilir ve sonraki açılışlarda da kullanılır. <code>0</code> yazmak varsayılana döndürür.</li>
+<li>Sonuçlar yaklaşıktır; nesnenin gerçek boyutu ortalamadan farklıysa (çocuk, büyük köpek vb.) tahmin de sapar.</li>
+</ul>
 <h2>Kurulum</h2>
 <ol>
 <li>Projeyi klonlayın:
@@ -146,6 +171,11 @@ footer { color: var(--muted); font-size: 14px; padding: 0 0 40px; text-align: ce
 <ul>
 <li><code>OpenCv/Form1.cs</code>: Arayüz, klavye kısayolları ve kamera iş parçacığı</li>
 <li><code>OpenCv/FrameProcessor.cs</code>: Filtreler ve yüz algılama</li>
+<li><code>OpenCv/ObjectDetector.cs</code>: YOLOv4-tiny ile nesne algılama (OpenCV DNN)</li>
+<li><code>OpenCv/DistanceEstimator.cs</code>: Mesafe ve boyut tahmini, kalibrasyon</li>
+<li><code>OpenCv/ObjectCatalog.cs</code>: 80 nesne türünün Türkçe adı, kategorisi, ortalama boyutları ve açıklaması</li>
+<li><code>OpenCv/WikipediaClient.cs</code>: Türkçe Vikipedi'den ücretsiz özet (API anahtarı gerekmez)</li>
+<li><code>OpenCv/Models/</code>: YOLOv4-tiny model dosyaları (<a href="https://github.com/BeyzanurKarademirli/OpenCv/blob/master/OpenCv/Models/LICENSE-YOLO.txt">YOLO lisansı</a>, ücretsiz kullanım)</li>
 <li><code>OpenCv/Data/haarcascade_frontalface_default.xml</code>: OpenCV'nin yüz algılama modeli (derlemede çıktı klasörüne kopyalanır)</li>
 </ul>
 <h2>Gereksinimler</h2>
